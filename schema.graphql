@@ -1,0 +1,13 @@
+type Note @entity {
+  id: String!
+  tokenId: BigInt!
+  slot: BigInt!
+  name: String!
+  description: String!
+  value: BigInt!
+  owner: Bytes!
+  underlyingAsset: Bytes!
+  tokenURI: String
+  owns: BigInt!
+  symbol: String!
+}
