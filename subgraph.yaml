@@ -6,9 +6,9 @@ dataSources:
     name: Cryptonotes
     network: goerli
     source:
-      address: "0xC2E4c6c01fb116fE49820857765006eb9002d866"
+      address: "0x587233290b3A8a459367cCF0ff4C5BA0E3525B11"
       abi: Cryptonotes
-      startBlock: 7884412
+      startBlock: 7888369
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7

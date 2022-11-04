@@ -1,4 +1,4 @@
-import { Address, BigInt, Bytes, json, log, store } from '@graphprotocol/graph-ts'
+import { Address, BigInt, Bytes, ethereum, json, log, store } from '@graphprotocol/graph-ts'
 import {
   Cryptonotes,
   Merge,
@@ -19,7 +19,7 @@ export function handleMerge(event: Merge): void {
   let entity = Note.load(fromId)
   if (entity) {
     store.remove('Note', fromId)
-    log.info('Merge - removing the note {}', [fromId])
+    log.info('Merge - removing the note of {}', [fromId])
   }
 
   const targetTokenId = event.params.targetTokenId.toString()
@@ -27,6 +27,9 @@ export function handleMerge(event: Merge): void {
   if (entity) {
     entity.value = event.params.mergeUnits.plus(entity.value)
     entity.owns = entity.owns.minus(BigInt.fromI32(1))
+    let contract = Cryptonotes.bind(event.address)
+    const tokenInfo = contract.try_tokenURI(event.params.targetTokenId)
+    entity.tokenURI = getTokenURI(tokenInfo, targetTokenId)
     entity.save()
   }
 }
@@ -40,7 +43,8 @@ export function handleSplit(event: Split): void {
     let contract = Cryptonotes.bind(event.address)
     const ownsInfo = contract.try_balanceOf(event.params.owner)
     entity.owns = ownsInfo.reverted ? BigInt.fromI32(0) : ownsInfo.value
-
+    const tokenInfo = contract.try_tokenURI(event.params.tokenId)
+    entity.tokenURI = getTokenURI(tokenInfo, fromId)
     entity.save()
   }
 
@@ -55,6 +59,8 @@ export function handleSplit(event: Split): void {
     let contract = Cryptonotes.bind(event.address)
     const ownsInfo = contract.try_balanceOf(event.params.owner)
     entity.owns = ownsInfo.reverted ? BigInt.fromI32(0) : ownsInfo.value
+    const tokenInfo = contract.try_tokenURI(event.params.newTokenId)
+    entity.tokenURI = getTokenURI(tokenInfo, newTokenId)
   }
 
   entity.save()
@@ -65,16 +71,22 @@ export function handleTopUp(event: TopUp): void {
   let entity = Note.load(noteId)
   if (entity) {
     entity.value = event.params.units.plus(entity.value)
+    
+    let contract = Cryptonotes.bind(event.address)
+    const tokenInfo = contract.try_tokenURI(event.params.tokenId)
+    entity.tokenURI = getTokenURI(tokenInfo, noteId.toString())
+    
     entity.save()
   }
 }
 
 export function handleWithdraw(event: Withdraw): void {
   const noteId = event.params.tokenId.toString()
+  log.info('Handling withdraw: {}', [noteId])
   let entity = Note.load(noteId)
   if (entity) {
     store.remove('Note', noteId)
-    log.info('Withdraw - removing the note {}', [noteId])
+    log.debug('Withdraw - removing the note {}', [noteId])
   }
 }
 
@@ -96,7 +108,7 @@ function saveNote(_noteId: string, _owner: Address, _tokenId: BigInt, _address: 
 
   const valueInfo = contract.try_balanceOf1(tokenId)
   if (valueInfo.reverted) {
-    log.info('get value info reverted', [])
+    log.debug('get value info reverted', [])
   } else {
     entity.value = valueInfo.value
   }
@@ -113,12 +125,7 @@ function saveNote(_noteId: string, _owner: Address, _tokenId: BigInt, _address: 
 
   // get image from the token URI
   const tokenInfo = contract.try_tokenURI(tokenId)
-  if (tokenInfo.reverted) {
-    log.info('get tokenURI reverted: {}', [tokenId.toString()])
-  } else {
-    const base64URI = normalize(tokenInfo.value)
-    entity.tokenURI = base64URI
-  }
+  entity.tokenURI = getTokenURI(tokenInfo, tokenId.toString())
 
   const ownsInfo = contract.try_balanceOf(_owner)
   entity.owns = ownsInfo.reverted ? BigInt.fromI32(0) : ownsInfo.value
@@ -127,7 +134,7 @@ function saveNote(_noteId: string, _owner: Address, _tokenId: BigInt, _address: 
 }
 
 function setCharAt(str: string, index: i32, char: string): string {
-  if(index > str.length-1) return str;
+  if (index > str.length-1) return str;
   return str.substr(0,index) + char + str.substr(index+1);
 }
 
@@ -141,5 +148,14 @@ function normalize(strValue: string): string {
       }
     }
     return strValue;
+  }
+}
+
+function getTokenURI(tokenInfo: ethereum.CallResult<string>, tokenId: string): string {
+  if (tokenInfo.reverted) {
+    log.warning('get tokenURI reverted: {}', [tokenId])
+    return ''
+  } else {
+    return normalize(tokenInfo.value)
   }
 }
