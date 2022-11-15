@@ -6,9 +6,9 @@ dataSources:
     name: Cryptonotes
     network: goerli
     source:
-      address: "0x587233290b3A8a459367cCF0ff4C5BA0E3525B11"
+      address: "0xA9d1E6C19e3eBc9c9c716a240C751A7c9b19C3bC"
       abi: Cryptonotes
-      startBlock: 7888369
+      startBlock: 7894694
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
@@ -28,4 +28,6 @@ dataSources:
           handler: handleMerge
         - event: TopUp(indexed address,indexed uint256,uint256)
           handler: handleTopUp
+        - event: Withdraw(indexed address,indexed uint256,uint256)
+          handler: handleWithdraw
       file: ./src/cryptonotes.ts
