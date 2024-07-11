@@ -1,7 +1,12 @@
 {
-  "goerli": {
+  "sepolia": {
     "Cryptonotes": {
-      "address": "0xA9d1E6C19e3eBc9c9c716a240C751A7c9b19C3bC"
+      "address": "0x603AA792fF227Ed8143B0196Bd7c4233F46861ec",
+      "startBlock": 6286773
+    },
+    "NotesMetadataDescriptor": {
+      "address": "0xFDfc9FF52E60cDDFf088c7B44Da2F682EBB149b5",
+      "startBlock": 6286769
     }
   }
 }

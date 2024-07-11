@@ -4,11 +4,11 @@ schema:
 dataSources:
   - kind: ethereum
     name: Cryptonotes
-    network: goerli
+    network: sepolia
     source:
-      address: "0xA9d1E6C19e3eBc9c9c716a240C751A7c9b19C3bC"
       abi: Cryptonotes
-      startBlock: 7894694
+      address: "0x603AA792fF227Ed8143B0196Bd7c4233F46861ec"
+      startBlock: 6286773
     mapping:
       kind: ethereum/events
       apiVersion: 0.0.7
